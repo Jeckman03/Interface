@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 class MainClass {
 
@@ -45,6 +46,7 @@ public interface IAccount
 	void PayInFunds(decimal amount);
 	bool WithdrawlFunds(decimal amount);
 	decimal GetBalance();
+	string RudeLetter();
 }
 
 public interface IPrintToPaper
@@ -52,14 +54,50 @@ public interface IPrintToPaper
 	void DoPrint();
 }
 
-// Account class implementing an interface
-public class CustomerAccount : IAccount
+// Base account class
+public abstract class Account
 {
+	public AccountState state;
+	public string name;
+	public string address;
+	public int accountNumber;
+	public int overdraft;
 	private decimal balance = 0;
+	public static decimal interestRateCharged;
+
+	// Constructors
+	public Account()
+	{}
+
+	public Account(string inName, decimal inBalance)
+	{
+		name = inName;
+		balance = inBalance;
+	}
+
+	// Absract method
+	public abstract string RudeLetter();
+
+	public static bool AccountAllowed(decimal income, int age)
+	{
+		if ((income >= 10000) && (age >= 18))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 
 	public void PayInFunds(decimal amount)
 	{
 		balance += amount;
+	}
+
+	public decimal GetBalance()
+	{
+		return balance;
 	}
 
 	public virtual bool WithdrawlFunds(decimal amount)
@@ -78,10 +116,23 @@ public class CustomerAccount : IAccount
 
 		return true; 
 	}
+}
 
-	public decimal GetBalance()
+// Account class implementing an interface
+public class CustomerAccount : Account, IAccount
+{
+	//private decimal balance = 0;
+
+	public CustomerAccount()
+	{}
+
+	public CustomerAccount(string inName, decimal inBalance) :
+												base (inName, inBalance)
+	{}
+
+	public override string RudeLetter()
 	{
-		return balance;
+		return "You are overdrawn";
 	}
 }
 
@@ -92,9 +143,22 @@ public class CustomerAccount : IAccount
 // you can also use sealed on override methods so they cant be changed
 public sealed class BabyAccount : CustomerAccount, IAccount, IPrintToPaper
 {
+
+	public BabyAccount()
+	{}
+
+	public BabyAccount(string inName, decimal inBalance) :
+										base (inName, inBalance)
+	{}
+
 	public void DoPrint()
 	{
 		// Print Something
+	}
+
+	public override string RudeLetter()
+	{
+		return "Tell your parents you are overdrawn";
 	}
 
 	public override bool WithdrawlFunds(decimal amount)
@@ -111,3 +175,13 @@ public sealed class BabyAccount : CustomerAccount, IAccount, IPrintToPaper
 	}
 
 }
+
+// Enum of account state
+public enum AccountState 
+{
+	New,
+	Active,
+	UnderAudit,
+	Frozen,
+	Closed
+};
